@@ -1,8 +1,10 @@
 $(document).ready(function () {
+    // Function to show modal when "Add New Movie" button is clicked
     $("#openModalBtn").click(function () {
         $("#myModal").modal('show');
     });
 
+    // Function to fetch a random quote and display it
     function fetchRandomQuote() {
         $.ajax({
             url: 'https://gist.githubusercontent.com/camperbot/5a022b72e96c4c9585c32bf6a75f62d9/raw/e3c6895ce42069f0ee7e991229064f167fe8ccdc/quotes.json',
@@ -19,6 +21,7 @@ $(document).ready(function () {
         });
     }
 
+    // Function to display a quote in the quote container
     function displayQuote(quote) {
         const quoteContainer = $('#quoteContainer');
         const quoteHTML = `
@@ -34,19 +37,24 @@ $(document).ready(function () {
         quoteContainer.html(quoteHTML);
     }
 
+    // Fetch and display a random quote when the page loads
     fetchRandomQuote();
 
+    // Event listener for "New Quote" button to fetch and display a new quote
     $('#newQuoteBtn').click(function () {
         fetchRandomQuote();
     });
 
+    // Event listener for "Save changes" button in modal to add a new movie
     $("#myModal .button").click(function () {
+        // Retrieve input values
         const title = $('#title').val();
         const year = $('#year').val();
         const description = $('#description').val();
         const genre = $('#genre').val();
         const imageUrl = $('#imageUrl').val();
 
+        // Validation checks for input values
         if (title.trim().length > 250) {
             alert('Movie title should be maximum 250 characters.');
             return;
@@ -67,6 +75,7 @@ $(document).ready(function () {
             return;
         }
 
+        // Add the new movie to the movies array and populate movies
         movies.unshift({
             title: title,
             year: year,
@@ -77,8 +86,8 @@ $(document).ready(function () {
 
         populateMovies();
 
+        // Hide the modal and reset input values
         $("#myModal").modal('hide');
-
         $('#title').val('');
         $('#year').val('');
         $('#description').val('');
@@ -87,11 +96,13 @@ $(document).ready(function () {
     });
 });
 
+// Function to fetch movies from the API
 function fetchMovies() {
     $.ajax({
         url: 'https://api.tvmaze.com/shows',
         method: 'GET',
         success: function (response) {
+            // Map API response to movie objects and populate movies
             movies = response.map(show => ({
                 title: show.name,
                 year: show.premiered.split('-')[0],
@@ -107,6 +118,7 @@ function fetchMovies() {
     });
 }
 
+// Function to truncate long descriptions
 function truncateDescription(summary) {
     const text = summary.replace(/<\/?[^>]+(>|$)/g, "");
     const sentences = text.split(/\.|\?|!/);
@@ -114,8 +126,10 @@ function truncateDescription(summary) {
     return truncatedSentences.join('. ');
 }
 
+// Fetch movies from the API when the page loads
 fetchMovies();
 
+// Event listener for movie details modal to populate details based on selected movie
 $('#movieModal').on('show.bs.modal', function (event) {
     const button = $(event.relatedTarget);
     const title = button.data('title');
@@ -132,17 +146,19 @@ $('#movieModal').on('show.bs.modal', function (event) {
     `);
 });
 
-
+// Event listener for genre filter dropdown to filter movies by genre
 $('#genreFilter').change(function () {
     const selectedGenre = $(this).val();
     filterMoviesByGenre(selectedGenre);
 });
 
+// Function to filter movies by genre
 function filterMoviesByGenre(genre) {
     const filteredMovies = genre === 'all' ? movies : movies.filter(movie => movie.genre.includes(genre));
     populateMovies(filteredMovies);
 }
 
+// Function to populate movie posters
 function populateMovies(moviesData = movies) {
     const $moviePosters = $('#moviePosters');
     $moviePosters.empty();
@@ -153,6 +169,7 @@ function populateMovies(moviesData = movies) {
                     <img src="${movie.imageUrl}" class="card-img-top" alt="${movie.title}">
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">${movie.title}</h5>
+                        <p class="card-text">${movie.year}</p>
                         <p class="card-text flex-fill">${movie.description}</p>
                         <p class="card-text">${movie.genre}</p>
                         <button class="button btn-sm mt-auto" data-bs-toggle="modal" data-bs-target="#movieModal" data-title="${movie.title}" data-year="${movie.year}" data-description="${movie.description}" data-genre="${movie.genre}">View Details</button>
@@ -163,4 +180,5 @@ function populateMovies(moviesData = movies) {
     });
 }
 
+// Initial population of movies
 populateMovies();
